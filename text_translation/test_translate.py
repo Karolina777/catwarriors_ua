@@ -55,11 +55,11 @@ def get_named_entities(text):
     doc = nlp(text)
 
     # Extract named entities from the document
-    named_entities = set()
+    named_entities = list()
     for entity in doc.ents:
         if entity.label_ not in ['TIME', 'CARDINAL']:
             if ',' or "'" not in entity.text:
-                named_entities.add(entity.text)
+                named_entities.append(entity.text)
 
     # Return the set of named entities
     return named_entities
@@ -80,7 +80,7 @@ def translate_text_Translator(text, to_lang):
     # # TODO add the check that if the text exceeds max length,
     # #  then the rest is not translated and added in english the the output
     # #  (namely, after the 1st chunk everything goes in english)
-    # #  OR simply if error appeares - everything else in english
+    # #  OR simply if error appears - everything else in english
 
     for i, chunk in enumerate(chunks):
         try:
@@ -101,35 +101,47 @@ def translate_text_Translator(text, to_lang):
 
 
 # Specify the file path of the text file
-file_path = 'Chapter 6-12.txt'
+file_path = 'text.txt'
 
 # Read the text from the file with the correct encoding (e.g., UTF-8)
 with open(file_path, 'r', encoding='utf-8') as file:
     text_en = file.read()
 
-text_en = replace_newline_with_space(text_en)
+# text_en = replace_newline_with_space(text_en)
 # print(text_en)
 
 # # Open the file in write mode with the 'utf-8' encoding
-with open(file_path, 'w', encoding='utf-8') as file:
-    file.write(text_en)
+# with open(file_path, 'w', encoding='utf-8') as file:
+#     file.write(text_en)
 
 # Get the set of named entities from the original text
-named_entities = get_named_entities(text_en)
+named_entities_en = get_named_entities(text_en)
+# print(type(named_entities))
 
-named_entities = pd.DataFrame(named_entities)
-named_entities.to_csv('Names-in-text-en.csv', index=False)
-# print(named_entities)
+named_entities_ua = list()
+
+for name in named_entities_en:
+    if name.endswith("'s"):
+        name = name[:-2]
+    translated_name = translate_text_Translator(name, 'uk')
+    if translated_name.endswith('.'):
+        translated_name = translated_name[:-1]
+    named_entities_ua.append(translated_name)
+
+df_named_entities = pd.DataFrame({'names english': named_entities_en, 'names ukrainian': named_entities_ua})
+
+df_named_entities.to_csv('Names-in-text-en-ua.csv', index=False, encoding='utf-8')
+print(df_named_entities)
 
 # Call the translate_text function with the input text and target language
-translated_text = translate_text_Translator(text_en, 'uk')
+# translated_text = translate_text_Translator(text_en, 'uk')
 #
 # Print the translated text
-print(translated_text)
+# print(translated_text)
 #
 #
 # Open the file in write mode with the 'utf-8' encoding
-with open(file_path.replace(".txt", "-ua.txt"), 'w', encoding='utf-8') as file:
-    file.write(translated_text)
+# with open(file_path.replace(".txt", "-ua.txt"), 'w', encoding='utf-8') as file:
+#     file.write(translated_text)
 
-print("Text has been written to the file.")
+# print("Text has been written to the file.")
